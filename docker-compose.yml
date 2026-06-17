@@ -1,0 +1,36 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  mtproxy:
+    image: telegrammessenger/proxy:latest
+    container_name: mtproxy
+    restart: always
+    ports:
+      # AppSec: Port 443 is prioritized to make Fake-TLS traffic indistinguishable from normal HTTPS
+      - "443:443"
+    environment:
+      # Fake-TLS secret ('ee' prefix + 32-char hex secret + hex-encoded cover domain)
+      - SECRET=${PROXY_SECRET}
+      # Telegram Ad Tag for Sponsor Channel injection (32-character hex string)
+      - TAG=${AD_TAG}
+      - WORKERS=4
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    volumes:
+      - mtproxy_data:/data
+
+volumes:
+  mtproxy_data:
